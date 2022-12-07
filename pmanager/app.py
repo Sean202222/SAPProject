@@ -3,14 +3,11 @@
 from flask import Flask, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from flask_wtf import wtforms
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import InputRequired, length, ValidationError
 
 app = Flask(__name__)
-db = SQLAlchemy(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-app.config['SECRET_KEY'] = 'thisisasecretkey'
+# db = SQLAlchemy(app)
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+# app.config['SECRET_KEY'] = 'thisisasecretkey'
 
 # Create Table
 class User(db.Model, UserMixin):

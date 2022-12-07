@@ -8,7 +8,7 @@ class PasswordManager:
         self.key = None
         self.password_file = None
         self.password_dict = {}
-
+    # Test comment added
     # Key to encrypt and decrypt what we want to open
     def create_key(self, path): # Path needed to store key into a file
         self.key = Fernet.generate_key()
