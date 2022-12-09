@@ -4,19 +4,20 @@ import requests
 from pprint import pprint
 from bs4 import BeautifulSoup as bs
 from urllib.parse import urljoin
+from flask import Flask
+
+# Needed to run file on Browser with Flask
+xss = Flask(__name__)
 
 
 # Retrieves forms from the HTML content of a web page
 
-
 def get_all_forms(url):
     """Given a `url`, it returns all forms from the HTML content"""
     soup = bs(requests.get(url).content, "html.parser")
-    return soupp.find_all("form")
-
+    return soup.find_all("form")
 
 # Returns a list of forms as 'soup' objects to extract details and attributes
-
 
 def get_form_details(form):
     """
@@ -37,13 +38,9 @@ def get_form_details(form):
     details["action"] = action
     details["method"] = method
     details["inputs"] = inputs
-    return detals
+    return details
 
-
-# Submit given formsand gets form details
-
-
-def submit_form(form_detls, url, value):
+def submit_form(form_details, url, value):
     """
     Submits a form given in `form_details`
     Params:
@@ -53,7 +50,7 @@ def submit_form(form_detls, url, value):
     Returns the HTTP Response after form submission
     """
     # construct the full URL (if the url provided in action is relative)
-    tar_url = urljoin(url, form_details["action"])
+    target_url = urljoin(url, form_details["action"])
     # get the inputs
     inputs = form_details["inputs"]
     data = {}
@@ -76,9 +73,7 @@ def submit_form(form_detls, url, value):
         # GET request
         return requests.get(target_url, params=data)
 
-
 # Scan for XSS Vulnerability
-
 
 def scan_xss(url):
     """
@@ -88,7 +83,7 @@ def scan_xss(url):
     # get all the forms from the URL
     forms = get_all_forms(url)
     print(f"[+] Detected {len(forms)} forms on {url}.")
-    j_script = "<Script>alert('hi')</scripT>"
+    js_script = "<Script>alert('hi')</scripT>"
     # returning value
     is_vulnerable = False
     # iterate over all forms
@@ -98,14 +93,12 @@ def scan_xss(url):
         if js_script in content:
             print(f"[+] XSS Detected on {url}")
             print(f"[*] Form details:")
-            pprint(form_detail)
+            pprint(form_details)
             is_vulnerable = True
             # won't break because we want to print available vulnerable forms
     return is_vulnerable
 
-
 # Prints the Result
-
 
 if __name__ == "__main__":
     url = "https://xss-game.appspot.com/level1/frame"

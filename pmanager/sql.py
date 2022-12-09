@@ -4,14 +4,16 @@ import requests
 from bs4 import BeautifulSoup as bs
 from urllib.parse import urljoin
 from pprint import pprint
+from flask import Flask
+
+# Needed to run file on Browser with Flask
+sql = Flask(__name__)
 
 # initialize an HTTP session & set the browser
-s = requests.Sesion()
-s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36"
+s = requests.Session()
+s.headers["User-Agent"] = "Chrome/108.0.5359.98"
 
-
-# extract web forms for user inputs
-
+# Extracting web forms
 
 def get_all_forms(url):
     """Given a `url`, it returns all forms from the HTML content"""
@@ -19,7 +21,7 @@ def get_all_forms(url):
     return soup.find_all("form")
 
 
-def get_form_detils(form):
+def get_form_details(form):
     """
     This function extracts all possible useful information about an HTML `form`
     """
@@ -35,7 +37,7 @@ def get_form_detils(form):
     inputs = []
     for input_tag in form.find_all("input"):
         input_type = input_tag.attrs.get("type", "text")
-        input_name = input_tag.attrts.get("name")
+        input_name = input_tag.attrs.get("name")
         input_value = input_tag.attrs.get("value", "")
         inputs.append({"type": input_type, "name": input_name, "value": input_value})
     # put everything to the resulting dictionary
@@ -44,14 +46,12 @@ def get_form_detils(form):
     details["inputs"] = inputs
     return details
 
-
-# Says if a web page has SQL errors
-
+# Proves the existence of SQL errors
 
 def is_vulnerable(response):
     """A simple boolean function that determines whether a page 
     is SQL Injection vulnerable from its `response`"""
-    error = {
+    errors = {
         # MySQL
         "you have an error in your sql syntax;",
         "warning: mysql",
@@ -62,16 +62,14 @@ def is_vulnerable(response):
     }
     for error in errors:
         # if you find one of these errors, return True
-        if error in respons.content.decode().lower():
+        if error in response.content.decode().lower():
             return True
     # no error detected
     return False
 
+# Search all forms in the web page
 
-# Searches all forms within the web page
-
-
-def scan_sql_injction(url):
+def scan_sql_injection(url):
     # test on URL
     for c in "\"'":
         # add quote/double quote character to the URL
@@ -110,14 +108,14 @@ def scan_sql_injction(url):
             elif form_details["method"] == "get":
                 res = s.get(url, params=data)
             # test whether the resulting page is vulnerable
-            if is_vulnerble(res):
+            if is_vulnerable(res):
                 print("[+] SQL Injection vulnerability detected, link:", url)
                 print("[+] Form:")
                 pprint(form_details)
                 break
-
+            
 # Parse the forms
-
+    
 if __name__ == "__main__":
-    url = "http://testphp.vulnweb.com/artists.php?artist=1"
+    url = "http://127.0.0.1:5000/"
     scan_sql_injection(url)
